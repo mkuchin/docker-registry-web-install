@@ -1,5 +1,6 @@
 # check if docker installed
 docker -v >/dev/null 2>&1 || { echo >&2 "Docker required but it's not installed.  Aborting."; exit 1; }
+docker-compose -v >/dev/null 2>&1 || { echo >&2 "Docker required but it's not installed.  Aborting."; exit 1; }
 
 domain=$1
 if [[  -z  $1  ]]; then
@@ -33,3 +34,10 @@ mkdir /var/www/dehydrated
 echo CA="https://acme-staging.api.letsencrypt.org/directory" > /etc/dehydrated/config
 echo $domain > /etc/dehydrated/domains.txt
 dehydrated -c
+
+cat config/stage2/conf/nginx/default.conf | sed -e "s/{{domain}}/$domain/"  > /etc/nginx/sites-enabled/$domain
+service nginx reload
+
+cat config/stage2/conf/registry/config.yml.tmpl | sed -e "s/{{domain}}/$domain/" > config/stage2/conf/registry/config.yml
+cat config/stage2/conf/registry-web/config.yml.tmpl | sed -e "s/{{domain}}/$domain/" > config/stage2/conf/registry-web/config.yml
+
