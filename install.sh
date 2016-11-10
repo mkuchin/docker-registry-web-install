@@ -41,3 +41,6 @@ service nginx reload
 cat config/stage2/conf/registry/config.yml.tmpl | sed -e "s/{{domain}}/$domain/" > config/stage2/conf/registry/config.yml
 cat config/stage2/conf/registry-web/config.yml.tmpl | sed -e "s/{{domain}}/$domain/" > config/stage2/conf/registry-web/config.yml
 
+cd config/stage2/
+./genkey.sh
+docker-compose up -d
