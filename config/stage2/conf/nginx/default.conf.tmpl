@@ -1,11 +1,11 @@
 # based on https://docs.docker.com/registry/nginx/
 
 upstream docker-registry {
-    server localhost:5000;
+    server registry:5000;
 }
 
 upstream docker-registry-web {
-    server localhost:8080;
+    server registry-web:8080;
 }
 
 server {
