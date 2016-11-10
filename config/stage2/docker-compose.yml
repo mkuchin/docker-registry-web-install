@@ -1,20 +1,20 @@
 version: '2'
 services:
-#  nginx:
-#    image: nginx:1.10
-#    ports:
-#      - 80:80
-#    volumes:
-#       - ./conf/nginx:/etc/nginx/conf.d/:ro
-#    networks:
-#      - registry-net
-#    depends_on:
-#      - registry
-#      - registry-web
+  nginx:
+    image: nginx:1.10
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+       - ./conf/nginx:/etc/nginx/conf.d:ro
+       - ./etc/dehydrated:/etc/dehydrated:ro
+    networks:
+      - registry-net
+    depends_on:
+      - registry
+      - registry-web
   registry-web:
     image: hyper/docker-registry-web:latest
-    ports:
-      - 127.0.0.1:8080:8080
     volumes:
        - ./conf/registry-web:/conf:ro
        - ./db:/data
@@ -24,8 +24,6 @@ services:
        - registry
   registry:
     image: registry:2.4.1
-    ports:
-      - 127.0.0.1:5000:5000
     volumes:
       - ./conf/registry:/etc/docker/registry:ro
       - ./registry:/var/lib/registry
