@@ -39,15 +39,13 @@ echo $domain > etc/dehydrated/domains.txt
 sleep 1
 docker run --rm -v $(pwd)/etc/dehydrated:/etc/dehydrated -v $(pwd)/var/www:/var/www  hyper/dehydrated -c
 docker rm -f nginx
-exit 1
 
-cat config/stage2/conf/nginx/default.conf | sed -e "s/{{domain}}/$domain/"  > /etc/nginx/sites-enabled/$domain
-sleep 1
-service nginx reload
-
+cat config/stage2/conf/nginx/default.conf.tmpl | sed -e "s/{{domain}}/$domain/"  > config/stage2/conf/nginx/default.conf
 cat config/stage2/conf/registry/config.yml.tmpl | sed -e "s/{{domain}}/$domain/" > config/stage2/conf/registry/config.yml
 cat config/stage2/conf/registry-web/config.yml.tmpl | sed -e "s/{{domain}}/$domain/" > config/stage2/conf/registry-web/config.yml
-
+mkdir config/stage2/etc
+ln -s $(pwd)/etc/dehydrated config/stage2/etc/dehydrated
 cd config/stage2/
 ./generate-keys.sh
-docker-compose up -d
+sleep 1
+docker-compose up
