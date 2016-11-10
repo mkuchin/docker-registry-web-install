@@ -11,13 +11,13 @@ echo Domain=$domain
 
 #apt-get -y install nginx
 #todo: check if file not exists
-mkdir -p nginx/config
-mkdir  nginx/www
-cat config/nginx-stage1.cfg | sed -e "s/{{domain}}/$domain/"  > nginx/config/default.conf
-docker run -p 80:80 -v $(pwd)/nginx/www:/var/www -v $(pwd)/nginx/config:/etc/nginx/conf.d -d --name nginx nginx
+mkdir -p etc/nginx/conf.d
+mkdir  -p var/www
+cat config/nginx-stage1.cfg | sed -e "s/{{domain}}/$domain/"  > etc/nginx/conf.d/default.conf
+docker run -p 80:80 -v $(pwd)/var/www:/var/www -v $(pwd)/etc/nginx/conf.d:/etc/nginx/conf.d -d --name nginx nginx
 #service nginx reload
 
-echo $domain > nginx/www/domain.txt
+echo $domain > var/www/domain.txt
 echo Checking domain...
 sleep 1
 response=$(curl -s $domain/domain.txt)
@@ -27,21 +27,19 @@ if [ "$domain" != "$response" ]; then
 else
 echo "...OK"
 fi
-exit 1
-
-echo Installing dehydrated  client
-curl -s https://raw.githubusercontent.com/lukas2511/dehydrated/a13e41036381a76de1e77a6ddd3d30170d445d6d/dehydrated > /usr/local/bin/dehydrated
-chmod +x /usr/local/bin/dehydrated
 
 echo Generating ssl certificate
-mkdir /etc/dehydrated
-mkdir /var/www/dehydrated
-touch /etc/dehydrated/config
+mkdir etc/dehydrated
+mkdir var/www/dehydrated
+touch etc/dehydrated/config
+#echo  WELLKNOWN="$(pwd)/nginx/www/dehydrated" > /etc/dehydrated/config
 #staging url
 #echo CA="https://acme-staging.api.letsencrypt.org/directory" > /etc/dehydrated/config
-echo $domain > /etc/dehydrated/domains.txt
+echo $domain > etc/dehydrated/domains.txt
 sleep 1
-dehydrated -c
+docker run --rm -v $(pwd)/etc/dehydrated:/etc/dehydrated -v $(pwd)/var/www:/var/www  hyper/dehydrated -c
+docker rm -f nginx
+exit 1
 
 cat config/stage2/conf/nginx/default.conf | sed -e "s/{{domain}}/$domain/"  > /etc/nginx/sites-enabled/$domain
 sleep 1
