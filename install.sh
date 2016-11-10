@@ -1,6 +1,7 @@
 # check if docker installed
 docker -v >/dev/null 2>&1 || { echo >&2 "Docker required but it's not installed.  Aborting."; exit 1; }
 docker-compose -v >/dev/null 2>&1 || { echo >&2 "Docker required but it's not installed.  Aborting."; exit 1; }
+#todo: check docker and compose versions
 
 domain=$1
 if [[  -z  $1  ]]; then
@@ -28,19 +29,22 @@ curl -s https://raw.githubusercontent.com/lukas2511/dehydrated/a13e41036381a76de
 chmod +x /usr/local/bin/dehydrated
 
 echo Generating ssl certificate
-#staging url
 mkdir /etc/dehydrated
 mkdir /var/www/dehydrated
-echo CA="https://acme-staging.api.letsencrypt.org/directory" > /etc/dehydrated/config
+touch /etc/dehydrated/config
+#staging url
+#echo CA="https://acme-staging.api.letsencrypt.org/directory" > /etc/dehydrated/config
 echo $domain > /etc/dehydrated/domains.txt
+sleep 1
 dehydrated -c
 
 cat config/stage2/conf/nginx/default.conf | sed -e "s/{{domain}}/$domain/"  > /etc/nginx/sites-enabled/$domain
+sleep 1
 service nginx reload
 
 cat config/stage2/conf/registry/config.yml.tmpl | sed -e "s/{{domain}}/$domain/" > config/stage2/conf/registry/config.yml
 cat config/stage2/conf/registry-web/config.yml.tmpl | sed -e "s/{{domain}}/$domain/" > config/stage2/conf/registry-web/config.yml
 
 cd config/stage2/
-./genkey.sh
+./generate-keys.sh
 docker-compose up -d
