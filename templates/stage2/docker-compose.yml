@@ -6,7 +6,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-       - ./conf/nginx:/etc/nginx/conf.d:ro
+       - ./nginx:/etc/nginx/conf.d:ro
        - ./etc/dehydrated:/etc/dehydrated:ro
     networks:
       - registry-net
@@ -16,8 +16,8 @@ services:
   registry-web:
     image: hyper/docker-registry-web:latest
     volumes:
-       - ./conf/registry-web:/conf:ro
-       - ./db:/data
+       - ./registry-web:/conf:ro
+       - ../data/web-db:/data
     networks:
       - registry-net
     depends_on:
@@ -25,8 +25,8 @@ services:
   registry:
     image: registry:2.4.1
     volumes:
-      - ./conf/registry:/etc/docker/registry:ro
-      - ./registry:/var/lib/registry
+      - ./registry:/etc/docker/registry:ro
+      - ../data/registry:/var/lib/registry
     networks:
       - registry-net
 

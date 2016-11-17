@@ -67,21 +67,29 @@ original () {
     docker run --rm -v $(pwd)/etc/dehydrated:/etc/dehydrated -v $(pwd)/var/www:/var/www  hyper/dehydrated -c
     docker rm -f nginx
 
-    mkdir config
+    mkdir -p config/nginx
+    mkdir config/registry
+    mkdir config/registry-web
 
-#    cat config/stage2/conf/nginx/default.conf.tmpl | sed -e "s/{{domain}}/$domain/"  > config/stage2/conf/nginx/default.conf
     generate_config stage2/conf/nginx/default.conf.tmpl config/nginx/default.conf
-#    cat config/stage2/conf/registry/config.yml.tmpl | sed -e "s/{{domain}}/$domain/" > config/stage2/conf/registry/config.yml
-    generate_config stage2/conf/registry/config.yml.tmpl config/stage2/conf/registry/config.yml
-
-#    cat config/stage2/conf/registry-web/config.yml.tmpl | sed -e "s/{{domain}}/$domain/" > config/stage2/conf/registry-web/config.yml
+    generate_config stage2/conf/registry/config.yml.tmpl config/registry/config.yml
     generate_config stage2/conf/registry-web/config.yml.tmpl config/registry-web/config.yml
 
-    exit 1
-    mkdir config/stage2/etc
-    ln -s $(pwd)/etc/dehydrated config/stage2/etc/dehydrated
-    cd config/stage2/
-    ./generate-keys.sh
+    mkdir config/etc
+    cp templates/stage2/docker-compose.yml config/
+    ln -s $(pwd)/etc/dehydrated config/etc/dehydrated
+    cd config
+
+    openssl req \
+    -new \
+    -newkey rsa:4096 \
+    -days 365 \
+    -subj "/CN=localhost" \
+    -nodes \
+    -x509 \
+    -keyout registry-web/auth.key \
+    -out registry/auth.cert
+
     echo Installing docker-compose
     curl -L "https://github.com/docker/compose/releases/download/1.8.1/docker-compose-$(uname -s)-$(uname -m)" > /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
