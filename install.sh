@@ -11,7 +11,7 @@ set -u # Undefined variables are errors
 
 main() {
     [[ $# -eq 0 ]] && usage
-    assert_cmnds
+    assert_cmds
     set_globals "$1"
     install
 }
@@ -94,7 +94,7 @@ install() {
     #todo: check docker and compose versions
 
     echo Domain=$domain
-    init_dirses
+    init_dirs
 
     generate_config nginx-stage1.cfg $nginx_stage1_dir/default.conf
 
