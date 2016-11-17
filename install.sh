@@ -92,18 +92,13 @@ original () {
     docker -v >/dev/null 2>&1 || { echo >&2 "Docker required but it's not installed.  Aborting."; exit 1; }
     #docker-compose -v >/dev/null 2>&1 || { echo >&2 "docker-compose required but it's not installed.  Aborting."; exit 1; }
     #todo: check docker and compose versions
-
-    if [[  -z  $1  ]]; then
-        read -p "Enter domain name of the host: " domain
-    fi
+     
     echo Domain=$domain
-
+    init_dirs
     generate_config nginx-stage1.cfg $nginx_stage1_dir/default.conf
-
     docker run -p 80:80 -v $(pwd)/$www_dir:/var/www -v $(pwd)/$nginx_stage1_dir:/etc/nginx/conf.d -d --name nginx nginx
-
-    check_domain()
-    generate_ssl_certificate()
+    check_domain 
+    generate_ssl_certificate 
 
     generate_config stage2/conf/nginx/default.conf.tmpl config/nginx/default.conf
     generate_config stage2/conf/registry/config.yml.tmpl config/registry/config.yml
@@ -111,7 +106,7 @@ original () {
 
     cp templates/stage2/docker-compose.yml config/
     cd config
-    generate_signing_keys()
+    generate_signing_keys 
 
     echo Installing docker-compose
     curl -L "https://github.com/docker/compose/releases/download/1.8.1/docker-compose-$(uname -s)-$(uname -m)" > /usr/local/bin/docker-compose
