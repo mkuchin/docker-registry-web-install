@@ -50,7 +50,7 @@ generate_compose_file() {
     local _file=docker-compose.yml
     local _config_dir_escaped=${config_dir//\//\\/}
     local _data_dir_escaped=${data_dir//\//\\/}
-    cat templates/stage2/$_file | sed -e "s/{{config_dir}}/$_config_dir_escaped/" | sed -e "s/{{data_dir}}/_data_dir_escaped/"  > $config_dir/$_file
+    cat "${template_dir}/stage2/$_file" | sed -e "s/{{config_dir}}/$_config_dir_escaped/" | sed -e "s/{{data_dir}}/_data_dir_escaped/"  > "$config_dir/$_file"
 }
 
 init_dirs() {
