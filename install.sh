@@ -40,7 +40,7 @@ original () {
     echo Domain=$domain
 
     mkdir -p $nginx_stage1_dir
-    mkdir -p $www_dir
+    mkdir -p $www_dir/dehydrated
 
     generate_config nginx-stage1.cfg $nginx_stage1_dir/default.conf
 
@@ -61,7 +61,7 @@ original () {
     mkdir -p $dehydrated_dir
     touch $dehydrated_dir/config
     #staging url
-    echo CA="https://acme-staging.api.letsencrypt.org/directory" > /etc/dehydrated/config
+    echo CA="https://acme-staging.api.letsencrypt.org/directory" > $dehydrated_dir/config
     echo $domain > $dehydrated_dir/domains.txt
     sleep 1
     docker run --rm -v $(pwd)/$dehydrated_dir:/etc/dehydrated -v $(pwd)/$www_dir:/var/www  hyper/dehydrated -c
