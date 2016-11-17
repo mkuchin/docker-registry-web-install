@@ -26,6 +26,7 @@ set_globals() {
     domain=$1
 
     script_path=$( cd $(dirname $0) ; pwd -P )
+    template_dir="$script_path/templates"
     install_dir=${DRW_INSTALL_ROOT:-$_pwd}
 
     config_dir="${install_dir}/config"
@@ -35,14 +36,14 @@ set_globals() {
     www_dir=$config_dir/temp/var/www
     nginx_stage1_dir=$config_dir/temp/nginx/conf.d
     
-    assert_nz $script
+    assert_nz $script_path
     assert_nz $install_dir
 }
 
 generate_config() {
     local _template_name=$1
     local _config_name=$2
-    cat templates/$_template_name | sed -e "s/{{domain}}/$domain/"  > $_config_name
+    cat $_template_name | sed -e "s/{{domain}}/$domain/"  > $_config_name
 }
 
 generate_compose_file() {
@@ -106,14 +107,14 @@ install() {
     echo Domain=$domain
     init_dirs
 
-    generate_config $script_path/nginx-stage1.cfg $nginx_stage1_dir/default.conf
+    generate_config $template_dir/nginx-stage1.cfg $nginx_stage1_dir/default.conf
 
     docker run -p 80:80 -v $www_dir:/var/www -v $nginx_stage1_dir:/etc/nginx/conf.d -d --name nginx nginx
 
     check_domain
     generate_ssl_certificate
 
-    stage2="$script_path/stage2"
+    stage2="$template_dir/stage2"
     generate_config "$stage2/conf/nginx/default.conf.tmpl" $config_dir/nginx/default.conf
     generate_config "$stage2/conf/registry/config.yml.tmpl" $config_dir/registry/config.yml
     generate_config "$stage2/conf/registry-web/config.yml.tmpl" $config_dir/registry-web/config.yml
