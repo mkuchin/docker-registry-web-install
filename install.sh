@@ -25,12 +25,15 @@ set_globals() {
     local _pwd=$(pwd)
     domain=$1
     
-    dehydrated_dir=config/dehydrated
-    www_dir=config/temp/var/www
-    nginx_stage1_dir=config/temp/nginx/conf.d
-
     script=$( cd $(dirname $0) ; pwd -P )
     install_dir=${DRW_INSTALL_ROOT:-$_pwd}
+
+    config_dir="${install_dir}/config"
+    data_dir="${install_dir}/data"
+    
+    dehydrated_dir=$config_dir/dehydrated
+    www_dir=$config_dir/temp/var/www
+    nginx_stage1_dir=$config_dir/temp/nginx/conf.d
     
     assert_nz $script
     assert_nz $install_dir
@@ -46,9 +49,9 @@ init_dirs() {
     mkdir -p $dehydrated_dir
     mkdir -p $nginx_stage1_dir
     mkdir -p $www_dir/dehydrated
-    mkdir -p config/nginx
-    mkdir config/registry
-    mkdir config/registry-web
+    mkdir -p $config_dir/nginx
+    mkdir $config_dir/registry
+    mkdir $config_dir/registry-web
 }
 
 check_domain() {
@@ -71,7 +74,7 @@ generate_ssl_certificate() {
     echo CA="https://acme-staging.api.letsencrypt.org/directory" > $dehydrated_dir/config
     echo $domain > $dehydrated_dir/domains.txt
     sleep 1
-    docker run --rm -v $(pwd)/$dehydrated_dir:/etc/dehydrated -v $(pwd)/$www_dir:/var/www  hyper/dehydrated -c
+    docker run --rm -v $dehydrated_dir:/etc/dehydrated -v $www_dir:/var/www  hyper/dehydrated -c
     docker rm -f nginx
 }
 
@@ -98,17 +101,17 @@ install() {
 
     generate_config nginx-stage1.cfg $nginx_stage1_dir/default.conf
 
-    docker run -p 80:80 -v $(pwd)/$www_dir:/var/www -v $(pwd)/$nginx_stage1_dir:/etc/nginx/conf.d -d --name nginx nginx
+    docker run -p 80:80 -v $www_dir:/var/www -v $nginx_stage1_dir:/etc/nginx/conf.d -d --name nginx nginx
 
     check_domain
     generate_ssl_certificate
 
-    generate_config stage2/conf/nginx/default.conf.tmpl config/nginx/default.conf
-    generate_config stage2/conf/registry/config.yml.tmpl config/registry/config.yml
-    generate_config stage2/conf/registry-web/config.yml.tmpl config/registry-web/config.yml
+    generate_config stage2/conf/nginx/default.conf.tmpl $config_dir/nginx/default.conf
+    generate_config stage2/conf/registry/config.yml.tmpl $config_dir/registry/config.yml
+    generate_config stage2/conf/registry-web/config.yml.tmpl $config_dir/registry-web/config.yml
 
-    cp templates/stage2/docker-compose.yml config/
-    cd config
+    cp templates/stage2/docker-compose.yml $config_dir
+    cd $config_dir
     generate_signing_keys
 
     echo Installing docker-compose
