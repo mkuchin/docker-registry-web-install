@@ -10,13 +10,15 @@ set -u # Undefined variables are errors
 
 main() {
 #    assert_cmds
-#    set_globals
+    set_globals
     original "$@"
 }
 
-# set_globals() {
-
-# }
+set_globals() {
+  dehydrated_dir=config/dehydrated
+  www_dir=config/temp/var/www
+  nginx_stage1_dir=config/temp/nginx/conf.d
+}
 
 generate_config() {
   local _template_name=$1
@@ -37,14 +39,14 @@ original () {
     fi
     echo Domain=$domain
 
-    mkdir -p etc/nginx/conf.d
-    mkdir  -p var/www
+    mkdir -p $nginx_stage1_dir
+    mkdir -p $www_dir
 
-    generate_config nginx-stage1.cfg etc/nginx/conf.d/default.conf
+    generate_config nginx-stage1.cfg $nginx_stage1_dir/default.conf
 
-    docker run -p 80:80 -v $(pwd)/var/www:/var/www -v $(pwd)/etc/nginx/conf.d:/etc/nginx/conf.d -d --name nginx nginx
+    docker run -p 80:80 -v $(pwd)/$www_dir:/var/www -v $(pwd)/$nginx_stage1_dir:/etc/nginx/conf.d -d --name nginx nginx
 
-    echo $domain > var/www/domain.txt
+    echo $domain > $www_dir/domain.txt
     echo Checking domain...
     sleep 1
     response=$(curl -s $domain/domain.txt)
@@ -56,15 +58,13 @@ original () {
     fi
 
     echo Generating ssl certificate
-    mkdir etc/dehydrated
-    mkdir var/www/dehydrated
-    touch etc/dehydrated/config
-    #echo  WELLKNOWN="$(pwd)/nginx/www/dehydrated" > /etc/dehydrated/config
+    mkdir -p $dehydrated_dir
+    touch $dehydrated_dir/config
     #staging url
-    #echo CA="https://acme-staging.api.letsencrypt.org/directory" > /etc/dehydrated/config
-    echo $domain > etc/dehydrated/domains.txt
+    echo CA="https://acme-staging.api.letsencrypt.org/directory" > /etc/dehydrated/config
+    echo $domain > $dehydrated_dir/domains.txt
     sleep 1
-    docker run --rm -v $(pwd)/etc/dehydrated:/etc/dehydrated -v $(pwd)/var/www:/var/www  hyper/dehydrated -c
+    docker run --rm -v $(pwd)/$dehydrated_dir:/etc/dehydrated -v $(pwd)/$www_dir:/var/www  hyper/dehydrated -c
     docker rm -f nginx
 
     mkdir -p config/nginx
