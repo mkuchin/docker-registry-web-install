@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # # Coding conventions
 #
@@ -9,15 +10,30 @@
 set -u # Undefined variables are errors
 
 main() {
-#    assert_cmds
-    set_globals
-    original "$@"
+    [[ $# -eq 0 ]] && usage
+    assert_cmds
+    set_globals "$1"
+    original
+}
+
+usage() {
+    printf "Usage: %s <domain name>\n" $0 
+    exit 1
 }
 
 set_globals() {
-  dehydrated_dir=config/dehydrated
-  www_dir=config/temp/var/www
-  nginx_stage1_dir=config/temp/nginx/conf.d
+    local _pwd=$(pwd)
+    $domain=$1
+    
+    dehydrated_dir=config/dehydrated
+    www_dir=config/temp/var/www
+    nginx_stage1_dir=config/temp/nginx/conf.d
+
+    script=$( cd $(dirname $0) ; pwd -P )
+    install_dir=${DRW_INSTALL_ROOT:-$_pwd}
+    
+    assert_nz $script
+    assert_nz $install_root
 }
 
 generate_config() {
