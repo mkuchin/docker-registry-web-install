@@ -9,14 +9,14 @@
 set -u # Undefined variables are errors
 
 main() {
-    assert_cmds
-    set_globals
+#    assert_cmds
+#    set_globals
     original "$@"
 }
 
-set_globals() {
+# set_globals() {
 
-}
+# }
 
 generate_config() {
   local _template_name=$1
@@ -159,8 +159,8 @@ abs_path() {
     (unset CDPATH && cd "$_path" > /dev/null && pwd)
 }
 
-assert_cmds() {
-#    need_cmd dirname
-}
+# assert_cmds() {
+#     need_cmd dirname
+# }
 
 main "$@"
