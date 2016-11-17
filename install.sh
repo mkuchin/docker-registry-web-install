@@ -77,7 +77,6 @@ original () {
 
     mkdir config/etc
     cp templates/stage2/docker-compose.yml config/
-    ln -s $(pwd)/etc/dehydrated config/etc/dehydrated
     cd config
 
     openssl req \
