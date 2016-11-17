@@ -11,7 +11,7 @@ set -u # Undefined variables are errors
 
 main() {
     [[ $# -eq 0 ]] && usage
-    assert_cmds
+#    assert_cmnds
     set_globals "$1"
     original
 }
@@ -23,7 +23,7 @@ usage() {
 
 set_globals() {
     local _pwd=$(pwd)
-    $domain=$1
+    domain=$1
     
     dehydrated_dir=config/dehydrated
     www_dir=config/temp/var/www
@@ -33,7 +33,7 @@ set_globals() {
     install_dir=${DRW_INSTALL_ROOT:-$_pwd}
     
     assert_nz $script
-    assert_nz $install_root
+    assert_nz $install_dir
 }
 
 generate_config() {
@@ -49,7 +49,6 @@ original () {
     #docker-compose -v >/dev/null 2>&1 || { echo >&2 "docker-compose required but it's not installed.  Aborting."; exit 1; }
     #todo: check docker and compose versions
 
-    domain=$1
     if [[  -z  $1  ]]; then
         read -p "Enter domain name of the host: " domain
     fi
@@ -181,9 +180,9 @@ abs_path() {
     # for good measure.
     (unset CDPATH && cd "$_path" > /dev/null && pwd)
 }
-
-# assert_cmds() {
-#     need_cmd dirname
+#
+#assert_cmds() {
+#    need_cmd dirname
 # }
 
 main "$@"
