@@ -1,4 +1,8 @@
-
+generate_config() {
+  local _template_name=$1
+  local _config_name=$2
+  cat templates/$_template_name | sed -e "s/{{domain}}/$domain/"  > $_config_name
+}
 
 
 main () {
@@ -13,13 +17,12 @@ main () {
     fi
     echo Domain=$domain
 
-    #apt-get -y install nginx
-    #todo: check if file not exists
     mkdir -p etc/nginx/conf.d
     mkdir  -p var/www
-    cat config/nginx-stage1.cfg | sed -e "s/{{domain}}/$domain/"  > etc/nginx/conf.d/default.conf
+
+    generate_config nginx-stage1.cfg etc/nginx/conf.d/default.conf
+
     docker run -p 80:80 -v $(pwd)/var/www:/var/www -v $(pwd)/etc/nginx/conf.d:/etc/nginx/conf.d -d --name nginx nginx
-    #service nginx reload
 
     echo $domain > var/www/domain.txt
     echo Checking domain...
@@ -44,9 +47,17 @@ main () {
     docker run --rm -v $(pwd)/etc/dehydrated:/etc/dehydrated -v $(pwd)/var/www:/var/www  hyper/dehydrated -c
     docker rm -f nginx
 
-    cat config/stage2/conf/nginx/default.conf.tmpl | sed -e "s/{{domain}}/$domain/"  > config/stage2/conf/nginx/default.conf
-    cat config/stage2/conf/registry/config.yml.tmpl | sed -e "s/{{domain}}/$domain/" > config/stage2/conf/registry/config.yml
-    cat config/stage2/conf/registry-web/config.yml.tmpl | sed -e "s/{{domain}}/$domain/" > config/stage2/conf/registry-web/config.yml
+    mkdir config
+
+#    cat config/stage2/conf/nginx/default.conf.tmpl | sed -e "s/{{domain}}/$domain/"  > config/stage2/conf/nginx/default.conf
+    generate_config stage2/conf/nginx/default.conf.tmpl config/nginx/default.conf
+#    cat config/stage2/conf/registry/config.yml.tmpl | sed -e "s/{{domain}}/$domain/" > config/stage2/conf/registry/config.yml
+    generate_config stage2/conf/registry/config.yml.tmpl config/stage2/conf/registry/config.yml
+
+#    cat config/stage2/conf/registry-web/config.yml.tmpl | sed -e "s/{{domain}}/$domain/" > config/stage2/conf/registry-web/config.yml
+    generate_config stage2/conf/registry-web/config.yml.tmpl config/registry-web/config.yml
+
+    exit 1
     mkdir config/stage2/etc
     ln -s $(pwd)/etc/dehydrated config/stage2/etc/dehydrated
     cd config/stage2/
