@@ -11,9 +11,9 @@ set -u # Undefined variables are errors
 
 main() {
     [[ $# -eq 0 ]] && usage
-#    assert_cmnds
+    assert_cmnds
     set_globals "$1"
-    original
+    install
 }
 
 usage() {
@@ -37,18 +37,18 @@ set_globals() {
 }
 
 generate_config() {
-  local _template_name=$1
-  local _config_name=$2
-  cat templates/$_template_name | sed -e "s/{{domain}}/$domain/"  > $_config_name
+    local _template_name=$1
+    local _config_name=$2
+    cat templates/$_template_name | sed -e "s/{{domain}}/$domain/"  > $_config_name
 }
 
 init_dirs() {
-  mkdir -p $dehydrated_dir
-  mkdir -p $nginx_stage1_dir
-  mkdir -p $www_dir/dehydrated
-  mkdir -p config/nginx
-  mkdir config/registry
-  mkdir config/registry-web
+    mkdir -p $dehydrated_dir
+    mkdir -p $nginx_stage1_dir
+    mkdir -p $www_dir/dehydrated
+    mkdir -p config/nginx
+    mkdir config/registry
+    mkdir config/registry-web
 }
 
 check_domain() {
@@ -77,28 +77,31 @@ generate_ssl_certificate() {
 
 generate_signing_keys() {
     openssl req \
-    -new \
-    -newkey rsa:4096 \
-    -days 365 \
-    -subj "/CN=localhost" \
-    -nodes \
-    -x509 \
-    -keyout registry-web/auth.key \
-    -out registry/auth.cert
+            -new \
+            -newkey rsa:4096 \
+            -days 365 \
+            -subj "/CN=localhost" \
+            -nodes \
+            -x509 \
+            -keyout registry-web/auth.key \
+            -out registry/auth.cert
 }
 
-original () {
+install() {
     # check if docker installed
-    docker -v >/dev/null 2>&1 || { echo >&2 "Docker required but it's not installed.  Aborting."; exit 1; }
+
     #docker-compose -v >/dev/null 2>&1 || { echo >&2 "docker-compose required but it's not installed.  Aborting."; exit 1; }
     #todo: check docker and compose versions
-     
+
     echo Domain=$domain
-    init_dirs
+    init_dirses
+
     generate_config nginx-stage1.cfg $nginx_stage1_dir/default.conf
+
     docker run -p 80:80 -v $(pwd)/$www_dir:/var/www -v $(pwd)/$nginx_stage1_dir:/etc/nginx/conf.d -d --name nginx nginx
-    check_domain 
-    generate_ssl_certificate 
+
+    check_domain
+    generate_ssl_certificate
 
     generate_config stage2/conf/nginx/default.conf.tmpl config/nginx/default.conf
     generate_config stage2/conf/registry/config.yml.tmpl config/registry/config.yml
@@ -106,7 +109,7 @@ original () {
 
     cp templates/stage2/docker-compose.yml config/
     cd config
-    generate_signing_keys 
+    generate_signing_keys
 
     echo Installing docker-compose
     curl -L "https://github.com/docker/compose/releases/download/1.8.1/docker-compose-$(uname -s)-$(uname -m)" > /usr/local/bin/docker-compose
@@ -184,9 +187,10 @@ abs_path() {
     # for good measure.
     (unset CDPATH && cd "$_path" > /dev/null && pwd)
 }
+
 #
-#assert_cmds() {
-#    need_cmd dirname
-# }
+assert_cmds() {
+    need_cmd docker
+}
 
 main "$@"
