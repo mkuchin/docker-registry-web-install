@@ -45,6 +45,11 @@ generate_config() {
     cat templates/$_template_name | sed -e "s/{{domain}}/$domain/"  > $_config_name
 }
 
+generate_compose_file() {
+    local _file=docker_compose.yml
+    cat templates/stage2/$_file | sed -e "s/{{config_dir}}/$config_dir/" | sed -e "s/{{data_dir}}/$data_dir/"  > $config_dir/$_file
+}
+
 init_dirs() {
     mkdir -p $dehydrated_dir
     mkdir -p $nginx_stage1_dir
@@ -110,7 +115,8 @@ install() {
     generate_config stage2/conf/registry/config.yml.tmpl $config_dir/registry/config.yml
     generate_config stage2/conf/registry-web/config.yml.tmpl $config_dir/registry-web/config.yml
 
-    cp templates/stage2/docker-compose.yml $config_dir
+    generate_compose_file
+
     cd $config_dir
     generate_signing_keys
 
