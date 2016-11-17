@@ -24,8 +24,8 @@ usage() {
 set_globals() {
     local _pwd=$(pwd)
     domain=$1
-    
-    script=$( cd $(dirname $0) ; pwd -P )
+
+    script_path=$( cd $(dirname $0) ; pwd -P )
     install_dir=${DRW_INSTALL_ROOT:-$_pwd}
 
     config_dir="${install_dir}/config"
@@ -111,9 +111,10 @@ install() {
     check_domain
     generate_ssl_certificate
 
-    generate_config stage2/conf/nginx/default.conf.tmpl $config_dir/nginx/default.conf
-    generate_config stage2/conf/registry/config.yml.tmpl $config_dir/registry/config.yml
-    generate_config stage2/conf/registry-web/config.yml.tmpl $config_dir/registry-web/config.yml
+    stage2="$script_path/stage2"
+    generate_config "$stage2/conf/nginx/default.conf.tmpl" $config_dir/nginx/default.conf
+    generate_config "$stage2/conf/registry/config.yml.tmpl" $config_dir/registry/config.yml
+    generate_config "$stage2/conf/registry-web/config.yml.tmpl" $config_dir/registry-web/config.yml
 
     generate_compose_file
 
