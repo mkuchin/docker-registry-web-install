@@ -46,8 +46,10 @@ generate_config() {
 }
 
 generate_compose_file() {
-    local _file=docker_compose.yml
-    cat templates/stage2/$_file | sed -e "s/{{config_dir}}/$config_dir/" | sed -e "s/{{data_dir}}/$data_dir/"  > $config_dir/$_file
+    local _file=docker-compose.yml
+    local _config_dir_escaped=${config_dir//\//\\/}
+    local _data_dir_escaped=${data_dir//\//\\/}
+    cat templates/stage2/$_file | sed -e "s/{{config_dir}}/$_config_dir_escaped/" | sed -e "s/{{data_dir}}/_data_dir_escaped/"  > $config_dir/$_file
 }
 
 init_dirs() {
@@ -104,7 +106,7 @@ install() {
     echo Domain=$domain
     init_dirs
 
-    generate_config nginx-stage1.cfg $nginx_stage1_dir/default.conf
+    generate_config $script_path/nginx-stage1.cfg $nginx_stage1_dir/default.conf
 
     docker run -p 80:80 -v $www_dir:/var/www -v $nginx_stage1_dir:/etc/nginx/conf.d -d --name nginx nginx
 
